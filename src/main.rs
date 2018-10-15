@@ -21,7 +21,7 @@ fn main() {
         Ok(val) => path = val,
         Err(_e) => path = deafult_stdpath
     }
-    seek = path + file.as_str();
+    seek = String::from(path.as_str()) + file.as_str();
     println!("Looking for {}", seek);
 
     let mut f = File::open(seek).expect("Err: file not found");
@@ -30,6 +30,21 @@ fn main() {
     f.read_to_string(&mut raw_text).expect("Err: could not read file");
 
     // TODO: Implement a real parse to check if the file is a valid bench file
-    let v: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse file");
+    let mut v: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse file");
+
+    check_folders(&path);
+    println!("Folders are OK!");
 }
 
+fn check_folders(offset: &String) {
+    check_folder(String::from(offset.as_str()) + "bin");
+    check_folder(String::from(offset.as_str()) + "src");
+    check_folder(String::from(offset.as_str()) + "log");
+}
+
+fn check_folder(path: String) {
+    let path = std::path::Path::new(path.as_str());
+    if !path.exists() {
+        std::fs::create_dir(path).expect("Err: could not create folder");
+    }
+}
