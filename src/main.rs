@@ -150,7 +150,11 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             }
         }
         Action::Export => {
-            
+            let mut f = std::fs::File::open(String::from(path.as_str()) + "log/out").expect("Err: file not found");
+            let mut raw_text= String::new();
+
+            f.read_to_string(&mut raw_text).expect("Err: could not read file");
+            println!("{}", raw_text);
         }
     }
 
