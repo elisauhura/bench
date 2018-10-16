@@ -4,6 +4,13 @@ extern crate serde_json;
 
 mod stat;
 
+enum Action {
+    Build,
+    Check,
+    Run,
+    Export
+}
+
 fn main() {
     let file_key = "BENCH_STDFILE";
     let path_key = "BENCH_STDPATH";
@@ -22,6 +29,8 @@ build:
     build you project
 check:
     check is the project is ready to be runned
+export:
+    generate CSV from the results
 help:
     display this message
 run:
@@ -39,6 +48,7 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
     let id: String;
     let mut mark = 0;
     let mut command: String = String::from("");
+    let cmd: Action;
 
     for argument in std::env::args() {
         mark += 1;
@@ -70,24 +80,63 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             print!("{}", help_msg);
             return;
         }
+        //implement more stuff here... build, run and export mainly, later generate a bench_run_set script
+        "check" => {
+            cmd = Action::Check;
+        }
+        "export" => {
+            cmd = Action::Export;
+        }
+        "build" => {
+            cmd = Action::Build;
+        }
+        "run" => {
+            cmd = Action::Run;
+        }
         _ => {
             panic!("Err: Unknown command to bench");
         }
     }
 
     seek = String::from(path.as_str()) + file.as_str();
-    println!("Looking for {}", seek);
+    //println!("Looking for {}", seek);
 
-    let mut f = std::fs::File::open(seek).expect("Err: file not found");
+    let mut f = std::fs::File::open(&seek).expect("Err: file not found");
     let mut raw_text= String::new();
 
     f.read_to_string(&mut raw_text).expect("Err: could not read file");
 
     // TODO: Implement a real parse to check if the file is a valid bench file
-    let v: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse file");
+    let mut v: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse file");
 
     check_folders(&path);
-    println!("Folders are OK!");
+    //println!("Folders are OK!");
+
+    match cmd {
+        Action::Build => {
+            v["build"] = serde_json::Value::Bool(false);
+        }
+        Action::Check => {
+            if v["build"] == true {
+                std::process::exit(0);
+            }
+            std::process::exit(1);
+        }
+        Action::Run => {
+            if v["build"] == true {
+
+            } else {
+                std::process::exit(1);
+            }
+        }
+        Action::Export => {
+            
+        }
+    }
+
+    raw_text = serde_json::to_string_pretty(&v).expect("Err: could not parse object to json");
+
+    std::fs::write(seek, raw_text).expect("Err: could not write to bench file");
 }
 
 fn check_folders(offset: &String) {

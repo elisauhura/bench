@@ -1,5 +1,5 @@
 {
-    "version" : 1,
-    "type" : "bench_file",
-    "status" : true
+  "build": false,
+  "type": "bench_file",
+  "version": 1
 }
