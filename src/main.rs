@@ -114,7 +114,20 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
 
     match cmd {
         Action::Build => {
+            let lock: bool;
             v["build"] = serde_json::Value::Bool(false);
+            clear_build(&path);
+            //By now it will just invoke a build command, it shall be improved in the future
+            match v["build_cmd"] {
+                serde_json::Value::String(ref q) => {
+                    match v["build_arg"] {
+                        serde_json::Value::String(ref v) => { lock = std::process::Command::new(q).arg(v).current_dir(&path).status().expect("Err: could not build benchmark").success(); }
+                        _ => { panic!("Err: build_arg is not a string"); }
+                    }
+                }
+                _ => { panic!("Err: build_cmd is not a string"); }
+            }
+            if lock { v["build"] = serde_json::Value::Bool(lock); }
         }
         Action::Check => {
             if v["build"] == true {
@@ -123,10 +136,17 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             std::process::exit(1);
         }
         Action::Run => {
-            if v["build"] == true {
-
-            } else {
+            if v["build"] != true {
                 std::process::exit(1);
+            }
+            match v["run_cmd"] {
+                serde_json::Value::String(ref q) => {
+                    match v["run_arg"] {
+                        serde_json::Value::String(ref v) => { std::process::Command::new(q).arg(v).current_dir(&path).status().expect("Err: could not run benchmark").success(); }
+                        _ => { panic!("Err: run_arg is not a string"); }
+                    }
+                }
+                _ => { panic!("Err: run_cmd is not a string"); }
             }
         }
         Action::Export => {
@@ -143,6 +163,8 @@ fn check_folders(offset: &String) {
     check_folder(String::from(offset.as_str()) + "bin");
     check_folder(String::from(offset.as_str()) + "src");
     check_folder(String::from(offset.as_str()) + "log");
+    check_folder(String::from(offset.as_str()) + "input");
+    check_folder(String::from(offset.as_str()) + "output");
 }
 
 fn check_folder(path: String) {
@@ -150,4 +172,9 @@ fn check_folder(path: String) {
     if !path.exists() {
         std::fs::create_dir(path).expect("Err: could not create folder");
     }
+}
+
+fn clear_build(offset: &String) {
+    std::fs::remove_dir_all(String::from(offset.as_str()) + "bin").expect("Err: could not clean bin directory");
+    check_folder(String::from(offset.as_str()) + "bin");
 }
