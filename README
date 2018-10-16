@@ -1,0 +1,21 @@
+Bench Table Format
+
+make option that i was looking for is: -s, --silent, --quiet
+
+BTS is based in the json format
+
+Each run of a program shall output a json with the following structure:
+
+{
+    "bench" : "$NAME",
+    "runs" : [
+        {
+            "mode" : "(seq, omp, oss, pth, opt, ...)",
+            "args" : "-i 20",
+            "time" : 123 [ms],
+            "task_size" : 123 [ms] ?,
+            "task_dev" : 123 [ms] ?,
+            "threads" : 123
+        }, ...
+    ]
+}
