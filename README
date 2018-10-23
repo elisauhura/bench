@@ -8,14 +8,20 @@ Each run of a program shall output a json with the following structure:
 
 {
     "bench" : "$NAME",
-    "runs" : [
-        {
-            "mode" : "(seq, omp, oss, pth, opt, ...)",
-            "args" : "-i 20",
-            "time" : 123 [ms],
-            "task_size" : 123 [ms] ?,
-            "task_dev" : 123 [ms] ?,
-            "threads" : 123
-        }, ...
+    "id" : "$ID"
+    "mode" : "(seq, omp, oss, pth, opt, ...)",
+    "args" : "-i 20",
+    "time" : 123 [ms],
+    "task_size" : [ tasks ]?
     ]
 }
+
+If a benchmak contains multiple runs, it shall output with the following structure:
+
+{
+    "out" : [
+        <run>...
+    ]
+}
+
+For easier implementation, the user can user the bench API written in c.
