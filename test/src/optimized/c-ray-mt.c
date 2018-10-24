@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "../../c/bench.h"
 
 #define VER_MAJOR	1
 #define VER_MINOR	1
@@ -175,6 +176,11 @@ const char *usage = {
 
 
 int main(int argc, char **argv) {
+
+    process_name("c-ray-mt");
+    process_mode(OPTMIZED);
+    process_args(argc, argv);
+
 	int i;
 	unsigned long rend_time, start_time;
 	uint32_t *pixels;
@@ -299,10 +305,9 @@ int main(int argc, char **argv) {
 	}
 	threads[thread_num - 1].sl_count = yres - threads[thread_num - 1].sl_start;
 
-	fprintf(stderr, VER_STR, VER_MAJOR, VER_MINOR);
 
 	pthread_mutex_lock(&start_mutex);
-	start_time = get_msec();
+	process_start_measure();
 	start = 1;
 	pthread_cond_broadcast(&start_cond);
 	pthread_mutex_unlock(&start_mutex);
@@ -310,10 +315,8 @@ int main(int argc, char **argv) {
 	for(i=0; i<thread_num; i++) {
 		pthread_join(threads[i].thread, 0);
 	}
-	rend_time = get_msec() - start_time;
+	process_stop_measure();
 
-	/* output statistics to stderr */
-	fprintf(stderr, "Rendering took: %lu seconds (%lu milliseconds)\n", rend_time / 1000, rend_time);
 
 	/* output the image */
 	fprintf(outfile, "P6\n%d %d\n255\n", xres, yres);
@@ -335,6 +338,7 @@ int main(int argc, char **argv) {
 	}
 	free(pixels);
 	free(threads);
+    dump_csv(stdout);
 	return 0;
 }
 

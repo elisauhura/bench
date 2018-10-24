@@ -25,6 +25,7 @@
 #include <errno.h>
 #include "omp.h"
 #include <stdint.h>
+#include "../../c/bench.h"
 
 struct vec3 {
 	double x, y, z;
@@ -134,6 +135,10 @@ const char usage[] = {
 
 int main(int argc, char **argv, char **envp) {
 
+    process_name("c-ray-mt");
+    process_mode(OPENMP);
+    process_args(argc, argv);
+
 	int i, noout = 0;
 	unsigned long rend_time, start_time;
 	uint32_t *pixels;
@@ -213,7 +218,7 @@ int main(int argc, char **argv, char **envp) {
 	for(i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
 	for(i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
 	for(i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
-
+	process_start_measure();
     int id;
     #pragma omp parallel shared(xres, yres, pixels, rays_per_pixel, aspect, lnum, obj_list, cam, lights, urand, irand) private(i, id)
     {
@@ -232,7 +237,7 @@ int main(int argc, char **argv, char **envp) {
 	    	rend_time = get_msec() - start_time;
     }
 	/* output statistics to stderr */
-	fprintf(stderr, "Rendering took: %lu seconds (%lu milliseconds)\n", rend_time / 1000, rend_time);
+	process_stop_measure();
 
 	if(!noout) {
 	/* output the image */
@@ -253,6 +258,7 @@ int main(int argc, char **argv, char **envp) {
 		free(tmp);
 	}
 	free(pixels);
+	dump_csv(stdout);
 	return 0;
 }
 
