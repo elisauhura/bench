@@ -104,10 +104,11 @@ int process_args(int argc, char **argv) {
     return 1;
 }
 
-int process_stop_measure(void) {
+int process_start_measure(void) {
     bench_data.begin = rtclock();
 }
-int process_start_measure(void) {
+
+int process_stop_measure(void) {
     bench_data.end = rtclock();
 }
 
