@@ -142,6 +142,7 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             match v["run_cmd"] {
                 serde_json::Value::String(ref q) => {
                     match v["run_arg"] {
+                        // Parse the ouput as json, add ID and then write to the log file
                         serde_json::Value::String(ref v) => { std::process::Command::new(q).arg(v).current_dir(&path).status().expect("Err: could not run benchmark").success(); }
                         _ => { panic!("Err: run_arg is not a string"); }
                     }
@@ -150,6 +151,7 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             }
         }
         Action::Export => {
+            //Read json, print as CSV
             let mut f = std::fs::File::open(String::from(path.as_str()) + "log/out").expect("Err: file not found");
             let mut raw_text= String::new();
 
