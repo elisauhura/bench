@@ -1,0 +1,13 @@
+Set id to username if BENCH_STDID is not defined;
+
+Detect hardware device specs -> bench;
+Misc runtime information -> API;
+Number of executions desvio padrão.
+
+Port Karstor {
+    sparse
+    strassen
+    jacobi
+}
+
+try BOTS

@@ -74,7 +74,6 @@ struct vec3 get_sample_pos(int x, int y, int sample);
 struct vec3 jitter(int x, int y, int s);
 int ray_sphere(const struct sphere *sph, struct ray ray, struct spoint *sp);
 void load_scene(FILE *fp);
-unsigned long get_msec(void);
 
 #define MAX_LIGHTS		16				/* maximum number of lights */
 #define RAY_MAG			1000.0			/* trace rays of this magnitude */
@@ -218,24 +217,29 @@ int main(int argc, char **argv, char **envp) {
 	for(i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
 	for(i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
 	for(i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
-	process_start_measure();
+	
     int id;
     #pragma omp parallel shared(xres, yres, pixels, rays_per_pixel, aspect, lnum, obj_list, cam, lights, urand, irand) private(i, id)
     {
-        id = omp_get_thread_num();
-        if(id == 0)
-            start_time = get_msec();
-
         #pragma omp barrier
+		#pragma omp single
+		#ifdef _OPENMP
+			task_init_measure();
+		#endif
+			process_start_measure();
 
         #pragma omp for schedule(dynamic)
         for(i = 0; i < yres; i++) {
+			#ifdef _OPENMP
+				task_start_measure();
+			#endif
             render_scanline(i, (uint32_t*)((void*)pixels + i*xres*sizeof(uint32_t)));
+			#ifdef _OPENMP
+				task_stop_measure();
+			#endif
         }
-
-		if(id == 0)
-	    	rend_time = get_msec() - start_time;
     }
+	
 	/* output statistics to stderr */
 	process_stop_measure();
 
@@ -587,28 +591,3 @@ void load_scene(FILE *fp) {
 		}
 	}
 }
-
-
-/* provide a millisecond-resolution timer for each system */
-#if defined(unix) || defined(__unix__)
-#include <time.h>
-#include <sys/time.h>
-unsigned long get_msec(void) {
-	static struct timeval timeval, first_timeval;
-
-	gettimeofday(&timeval, 0);
-	if(first_timeval.tv_sec == 0) {
-		first_timeval = timeval;
-		return 0;
-	}
-	return (timeval.tv_sec - first_timeval.tv_sec) * 1000 + (timeval.tv_usec - first_timeval.tv_usec) / 1000;
-}
-#elif defined(__WIN32__) || defined(WIN32)
-#include <windows.h>
-unsigned long get_msec(void) {
-	return GetTickCount();
-}
-#else
-#error "I don't know how to measure time on your platform"
-#endif
-

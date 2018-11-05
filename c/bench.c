@@ -9,9 +9,11 @@
 }*/
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
+#include <time.h>
 
 #include "bench.h"
+
+#define GG
 
 static struct {
     char * name;
@@ -20,6 +22,17 @@ static struct {
     double begin;
     double end;
 } bench_data;
+
+#ifdef _OPENMP
+#include <omp.h>
+
+#define BENCH_TPT (4096) /*Number of tasks per thread to be remembered*/
+
+static int **pool;
+static int *ptr;
+static int *loop;
+
+#endif
 
 static int str_size(char * str) {
     int i;
@@ -38,13 +51,13 @@ static int str_size(char * str) {
     return i+1;
 };
 
-char * mode[] = { "SEQ", "OPENMP", "OMPSS", "PTHREADS", "OPTMIZED", "CUDA" };
+char * mode[] = {"SEQ", "OPENMP", "OMPSS", "PTHREADS", "OPTMIZED", "CUDA", "OPENMP_TASK"};
 
 static double rtclock()
 {
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    return t.tv_sec + t.tv_usec*1e-6;
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME,&t);
+    return t.tv_sec  + t.tv_nsec *1e-9;
 }
 
 void process_name(char * str) {
@@ -113,5 +126,62 @@ int process_stop_measure(void) {
 }
 
 int dump_csv(FILE * f) {
-    fprintf(f, "{\"bench\" : \"%s\",\"mode\" : \"%s\",\"args\" : \"%s\",\"time\" : %lf}\n", bench_data.name, mode[bench_data.mode], bench_data.args, bench_data.end - bench_data.begin);
+    fprintf(f, "{\"bench\" : \"%s\", \"id\" : \"\",\"mode\" : \"%s\",\"args\" : \"%s\",\"time\" : %lf", bench_data.name, mode[bench_data.mode], bench_data.args, bench_data.end - bench_data.begin);
+    
+    #ifdef _OPENMP
+    fprintf(f, ", \"tasks\" = [");
+    int q = omp_get_num_threads();
+    for(int i = 0; i < q; i++) {
+        if(loop[i]) {
+            for(int j = 0; j < BENCH_TPT; j++) {
+                printf("%lf,", pool[i][j]);
+            }
+        } else {
+            for(int j = 0; j < ptr[i]; j++) {
+                printf("%lf,", pool[i][j]);
+            }
+        }
+    }
+    fprintf(f,"0 ]");
+    #endif
+    
+    fprintf(f, "}\n");
 }
+
+#ifdef _OPENMP
+
+void * pmalloc(size_t size) {
+    void * q = malloc(size);
+    if(q == NULL) exit(EXIT_FAILURE);
+    return q;
+}
+
+int task_init_measure(void) {
+    int q = omp_get_num_threads();
+   
+    pool = pmalloc(sizeof(int *) * q);
+    ptr = pmalloc(sizeof(int) * q);
+    loop = pmalloc(sizeof(int) * q);
+    for(int i = 0; i < q; i++) {
+        pool[i] = pmalloc(sizeof(double) * BENCH_TPT);
+        ptr[i] = 0;
+        loop[i] = 0;
+    }
+}
+
+int task_stop_measure(void) {
+    int q = omp_get_thread_num();
+    pool[q][ptr[q]] += rtclock();
+    ptr[q]++;
+    if(ptr[q] >= BENCH_TPT) {
+        ptr[q] = 0;
+        loop[q] = 1;
+    }
+}
+
+int task_start_measure(void) {
+    int q = omp_get_thread_num();
+    pool[q][ptr[q]] = - rtclock();
+}
+
+#endif

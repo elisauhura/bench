@@ -9,7 +9,8 @@ enum Bench_mode {
     OMPSS,
     PTHREADS,
     OPTMIZED,
-    CUDA
+    CUDA,
+    OPENMP_TASK
 };
 
 void process_name(char * str);
@@ -18,6 +19,14 @@ int process_args(int argc, char **argv);
 
 int process_stop_measure(void);
 int process_start_measure(void);
+
+#ifdef _OPENMP
+
+int task_init_measure(void);
+int task_stop_measure(void);
+int task_start_measure(void);
+
+#endif
 
 int dump_csv(FILE * f); /*Usually STDOUT*/
 

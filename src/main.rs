@@ -1,4 +1,5 @@
 use std::io::Read;
+use std::io::Write;
 
 extern crate serde_json;
 
@@ -80,7 +81,6 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             print!("{}", help_msg);
             return;
         }
-        //implement more stuff here... build, run and export mainly, later generate a bench_run_set script
         "check" => {
             cmd = Action::Check;
         }
@@ -99,7 +99,6 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
     }
 
     seek = String::from(path.as_str()) + file.as_str();
-    //println!("Looking for {}", seek);
 
     let mut f = std::fs::File::open(&seek).expect("Err: file not found");
     let mut raw_text= String::new();
@@ -142,8 +141,25 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             match v["run_cmd"] {
                 serde_json::Value::String(ref q) => {
                     match v["run_arg"] {
-                        // Parse the ouput as json, add ID and then write to the log file
-                        serde_json::Value::String(ref v) => { std::process::Command::new(q).arg(v).current_dir(&path).status().expect("Err: could not run benchmark").success(); }
+                        serde_json::Value::String(ref v) => {
+                            let out: String;
+                            out = String::from(std::str::from_utf8(&std::process::Command::new(q).arg(v).arg("-s").current_dir(&path).output().expect("Err: could not run benchmark").stdout).expect("Err: could not read output"));
+                            let mut q: serde_json::Value = serde_json::from_str(out.as_str()).expect("Err: parsing benchmark output");
+                            match q["out"] {
+                                serde_json::Value::Array(ref mut r) => {
+                                    for i in r {
+                                        match i {
+                                            serde_json::Value::Object(ref mut s) => {
+                                                s["id"] = serde_json::Value::String(id.clone());
+                                            }
+                                            _ => { panic!("Err: parsing benchmark output"); }
+                                        }
+                                    }
+                                }
+                                _ => { panic!("Err: parsing benchmark output"); }
+                            }
+                            std::fs::File::write_all(&mut force_write(String::from(path.as_str()) + "/log/out.json"), q.to_string().as_bytes()).expect("Err: could not write bench out");
+                        }
                         _ => { panic!("Err: run_arg is not a string"); }
                     }
                 }
@@ -152,11 +168,24 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
         }
         Action::Export => {
             //Read json, print as CSV
-            let mut f = std::fs::File::open(String::from(path.as_str()) + "log/out").expect("Err: file not found");
+            let mut f = std::fs::File::open(String::from(path.as_str()) + "/log/out.json").expect("Err: file not found");
             let mut raw_text= String::new();
 
             f.read_to_string(&mut raw_text).expect("Err: could not read file");
-            println!("{}", raw_text);
+            let log: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse out.json file");
+            match log["out"] {
+                serde_json::Value::Array(ref r) => {
+                    for i in r {
+                        match i {
+                            serde_json::Value::Object(ref s) => {
+                                println!("{},{},{},{},{}", s["bench"], s["id"], s["args"], s["mode"], s["time"]);
+                            }
+                            _ => { panic!("Err: parsing benchmark output"); }
+                        }
+                    }
+                }
+                _ => { panic!("Err: parsing benchmark output"); }
+            }
         }
     }
 
@@ -183,4 +212,11 @@ fn check_folder(path: String) {
 fn clear_build(offset: &String) {
     std::fs::remove_dir_all(String::from(offset.as_str()) + "bin").expect("Err: could not clean bin directory");
     check_folder(String::from(offset.as_str()) + "bin");
+}
+
+fn force_write(path: String) -> std::fs::File {
+    match std::fs::remove_file(&path) {
+        Ok(_) => std::fs::File::create(&path).expect("Err: could not create file"),
+        Err(_) => std::fs::File::create(&path).expect("Err: could not create file")
+    }
 }
