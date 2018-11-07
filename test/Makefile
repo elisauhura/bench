@@ -11,7 +11,7 @@ bench:
 
 build: bench
 	$(CC) $(G) src/omp/c-ray-mt.c bench_omp.o $(FLAGS_OMP) -o bin/c-ray-omp
-	$(CC) $(G) src/optimized/c-ray-mt.c bench.o $(FLAGS_OPT) -o bin/c-ray-opt
+	# $(CC) $(G) src/optimized/c-ray-mt.c bench.o $(FLAGS_OPT) -o bin/c-ray-opt
 	$(CC) $(G) src/pthread/c-ray-mt.c bench.o $(FLAGS_PTH) -o bin/c-ray-pth
 	$(CC) $(G) src/seq/c-ray-mt.c bench.o $(FLAGS_SEQ) -o bin/c-ray-seq
 
@@ -21,15 +21,15 @@ run:
 	echo ','
 	./bin/c-ray-seq -s 4000x4000 -i input/scene -o output/seq_scene.ppm
 	echo ','
-	./bin/c-ray-opt -s 4000x4000 -i input/scene -o output/opt_scene.ppm
-	echo ','
+	# ./bin/c-ray-opt -s 4000x4000 -i input/scene -o output/opt_scene.ppm
+	# echo ','
 	./bin/c-ray-pth -s 4000x4000 -i input/scene -o output/pth_scene.ppm
 	echo ','
 	./bin/c-ray-omp -s 4000x4000 -i input/sphfract -o output/omp_sphfract.ppm
 	echo ','
 	./bin/c-ray-seq -s 4000x4000 -i input/sphfract -o output/seq_sphfract.ppm
 	echo ','
-	./bin/c-ray-opt -s 4000x4000 -i input/sphfract -o output/opt_sphfract.ppm
-	echo ','
+	# ./bin/c-ray-opt -s 4000x4000 -i input/sphfract -o output/opt_sphfract.ppm
+	# echo ','
 	./bin/c-ray-pth -s 4000x4000 -i input/sphfract -o output/pth_sphfract.ppm
 	echo "]}"

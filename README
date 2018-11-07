@@ -25,3 +25,5 @@ If a benchmak contains multiple runs, it shall output with the following structu
 }
 
 For easier implementation, the user can user the bench API written in c.
+
+Timing for tasks is measured in clocks instead of seconds

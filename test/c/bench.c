@@ -171,7 +171,7 @@ int task_init_measure(void) {
 
 int task_stop_measure(void) {
     int q = omp_get_thread_num();
-    pool[q][ptr[q]] += rtclock();
+    pool[q][ptr[q]] = clk_timing() - pool[q][ptr[q]];
     ptr[q]++;
     if(ptr[q] >= BENCH_TPT) {
         ptr[q] = 0;
@@ -181,7 +181,7 @@ int task_stop_measure(void) {
 
 int task_start_measure(void) {
     int q = omp_get_thread_num();
-    pool[q][ptr[q]] = - rtclock();
+    pool[q][ptr[q]] = clk_timing();
 }
 
 #endif
