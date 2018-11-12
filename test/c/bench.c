@@ -119,17 +119,19 @@ int process_args(int argc, char **argv) {
 
 int process_start_measure(void) {
     bench_data.begin = rtclock();
+    return 1;
 }
 
 int process_stop_measure(void) {
     bench_data.end = rtclock();
+    return 1;
 }
 
 int dump_csv(FILE * f) {
     fprintf(f, "{\"bench\" : \"%s\", \"id\" : \"\",\"mode\" : \"%s\",\"args\" : \"%s\",\"time\" : %lf", bench_data.name, mode[bench_data.mode], bench_data.args, bench_data.end - bench_data.begin);
     
     #ifdef _OPENMP
-    fprintf(f, ", \"tasks\" = [");
+    fprintf(f, ", \"tasks\" : [");
     int q = omp_get_num_threads();
     for(int i = 0; i < q; i++) {
         if(loop[i]) {
@@ -146,6 +148,7 @@ int dump_csv(FILE * f) {
     #endif
     
     fprintf(f, "}\n");
+    return 1;
 }
 
 #ifdef _OPENMP
