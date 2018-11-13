@@ -2,8 +2,7 @@ use std::io::Read;
 use std::io::Write;
 
 extern crate serde_json;
-
-mod stat;
+extern crate statistical;
 
 enum Action {
     Build,
@@ -32,6 +31,7 @@ check:
     check is the project is ready to be runned
 export:
     generate CSV from the results
+    requires `neofetch` to get hardware information
 help:
     display this message
 run:
@@ -170,6 +170,12 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             //Read json, print as CSV
             let mut f = std::fs::File::open(String::from(path.as_str()) + "/log/out.json").expect("Err: file not found");
             let mut raw_text= String::new();
+            let mut hardware = String::from("not available");
+            let out = std::process::Command::new("neofetch").arg("--stdout").output();
+            match out {
+                Ok(s) => {hardware = String::from(std::str::from_utf8(&s.stdout).expect("Err: could not get neofetch out")).replace("\n", " ").replace("\"","\"\"").replace(",", ";")}
+                Err(_) => {}
+            }
 
             f.read_to_string(&mut raw_text).expect("Err: could not read file");
             let log: serde_json::Value = serde_json::from_str(raw_text.as_str()).expect("Err: could not parse out.json file");
@@ -178,7 +184,33 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
                     for i in r {
                         match i {
                             serde_json::Value::Object(ref s) => {
-                                println!("{},{},{},{},{}", s["bench"], s["id"], s["args"], s["mode"], s["time"]);
+                                match s["tasks"] {
+                                    serde_json::Value::Array(ref tasks) => {
+                                        let mut values = Vec::new();
+                                        for num in tasks {
+                                            match num {
+                                                serde_json::Value::Number(n) => {
+                                                    let n = match n.as_f64() {
+                                                        Some(q) => { q }
+                                                        None => {0.0}
+                                                    };
+                                                    if n != 0.0 {
+                                                        values.push(n);
+                                                    }
+                                                }
+                                                _ => { }
+                                            }
+                                        }
+                                        /*Generate statistics*/
+                                        let mean = statistical::mean(&values);
+                                        let median = statistical::median(&values);
+                                        let dev = statistical::standard_deviation(&values, Some(mean));
+                                        println!("{},{},{},{},{},\"{}\",{},{},{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], mean, median, dev);
+                                    }
+                                    _ => {
+                                        println!("{},{},{},{},{},{},_,_,_", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"]);
+                                    }
+                                }
                             }
                             _ => { panic!("Err: parsing benchmark output"); }
                         }
