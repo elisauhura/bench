@@ -145,6 +145,8 @@ int dump_csv(FILE * f) {
         }
     }
     fprintf(f,"0 ]");
+    #else
+    fprintf(f, ", \"tasks\" : \"not available\"");
     #endif
     
     fprintf(f, "}\n");
