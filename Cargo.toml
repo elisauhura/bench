@@ -5,3 +5,4 @@ authors = ["Vitor Silva <sirmochi45@gmail.com>"]
 
 [dependencies]
 serde_json = "1.0"
+statistical = "0.1.1"
