@@ -119,17 +119,19 @@ int process_args(int argc, char **argv) {
 
 int process_start_measure(void) {
     bench_data.begin = rtclock();
+    return 1;
 }
 
 int process_stop_measure(void) {
     bench_data.end = rtclock();
+    return 1;
 }
 
 int dump_csv(FILE * f) {
     fprintf(f, "{\"bench\" : \"%s\", \"id\" : \"\",\"mode\" : \"%s\",\"args\" : \"%s\",\"time\" : %lf", bench_data.name, mode[bench_data.mode], bench_data.args, bench_data.end - bench_data.begin);
     
     #ifdef _OPENMP
-    fprintf(f, ", \"tasks\" = [");
+    fprintf(f, ", \"tasks\" : [");
     int q = omp_get_num_threads();
     for(int i = 0; i < q; i++) {
         if(loop[i]) {
@@ -143,9 +145,12 @@ int dump_csv(FILE * f) {
         }
     }
     fprintf(f,"0 ]");
+    #else
+    fprintf(f, ", \"tasks\" : \"not available\"");
     #endif
     
     fprintf(f, "}\n");
+    return 1;
 }
 
 #ifdef _OPENMP
@@ -171,7 +176,7 @@ int task_init_measure(void) {
 
 int task_stop_measure(void) {
     int q = omp_get_thread_num();
-    pool[q][ptr[q]] += rtclock();
+    pool[q][ptr[q]] = clk_timing() - pool[q][ptr[q]];
     ptr[q]++;
     if(ptr[q] >= BENCH_TPT) {
         ptr[q] = 0;
@@ -181,7 +186,7 @@ int task_stop_measure(void) {
 
 int task_start_measure(void) {
     int q = omp_get_thread_num();
-    pool[q][ptr[q]] = - rtclock();
+    pool[q][ptr[q]] = clk_timing();
 }
 
 #endif
