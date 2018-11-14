@@ -4,6 +4,8 @@
 #include <float.h>
 #include <math.h>
 
+#include "../c/bench.h"
+
 #define MSIZE
 #define CUTOFF_SIZE
 #define CUTOFF_DEPTH
@@ -143,6 +145,10 @@ int main(int argc, char* argv[])
     struct user_parameters params;
     memset(&params, 0, sizeof(params));
 
+    process_name("c-ray-mt");
+    process_mode(SEQ);
+    process_args(argc, argv);
+
     /* default value */
     params.niter = 1;
 
@@ -153,73 +159,16 @@ int main(int argc, char* argv[])
     #pragma omp parallel
     #pragma omp master
     num_threads = omp_get_num_threads();
+    process_mode(OPENMP);
+    task_init_measure();
 #endif
-
-    // warmup
+    //warmup
     run(&params);
 
-    double mean = 0.0;
-    double meansqr = 0.0;
-    double min_ = DBL_MAX;
-    double max_ = -1;
-    double* all_times = (double*)malloc(sizeof(double) * params.niter); 
+    process_start_measure();
+        run(&params);
+    process_stop_measure();
 
-    for (int i=0; i<params.niter; ++i)
-    {
-      double cur_time = run(&params);
-      all_times[i] = cur_time;
-      mean += cur_time;
-      min_ = min(min_, cur_time);
-      max_ = max(max_, cur_time);
-      meansqr += cur_time * cur_time;
-      }
-    mean /= params.niter;
-    meansqr /= params.niter;
-    double stddev = sqrt(meansqr - mean * mean);
-
-    qsort(all_times, params.niter, sizeof(double), comp);
-    double median = all_times[params.niter / 2];
-
-    free(all_times);
-
-    printf("Program : %s\n", argv[0]);
-#ifdef MSIZE
-    printf("Size : %d\n", params.matrix_size);
-#endif
-#ifdef SMSIZE
-    printf("Submatrix size : %d\n", params.submatrix_size);
-#endif
-#ifdef BSIZE
-    printf("Blocksize : %d\n", params.blocksize);
-#endif
-#ifdef IBSIZE
-    printf("Internal Blocksize : %d\n", params.iblocksize);
-#endif
-#ifdef TITER
-    printf("Iteration time : %d\n", params.titer);
-#endif
-    printf("Iterations : %d\n", params.niter);
-#ifdef CUTOFF_SIZE
-    printf("Cutoff Size : %d\n", params.cutoff_size);
-#endif
-#ifdef CUTOFF_DEPTH
-    printf("Cutoff depth : %d\n", params.cutoff_depth);
-#endif
-    printf("Threads : %d\n", num_threads);
-#ifdef GFLOPS
-    printf("Gflops:: ");
-#else
-    printf("Time(sec):: ");
-#endif
-    printf("avg : %lf :: std : %lf :: min : %lf :: max : %lf :: median : %lf\n",
-           mean, stddev, min_, max_, median);
-    if(params.check)
-        printf("Check : %s\n", (params.succeed)?
-                ((params.succeed > 1)?"not implemented":"success")
-                :"fail");
-    if (params.string2display !=0)
-      printf("%s", params.string2display);
-    printf("\n");
-
+    dump_csv(stdout);
     return 0;
 }

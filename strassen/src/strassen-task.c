@@ -36,6 +36,7 @@
 
 #include <stdlib.h>
 #include "strassen.h"
+#include "../c/bench.h"
 
 
 /*****************************************************************************
@@ -125,10 +126,10 @@ static void OptimizedStrassenMultiply_par(double *C, double *A, double *B,
   for (Row = 0; Row < QuadrantSize; Row++)
     for (Column = 0; Column < QuadrantSize; Column++)
       S1[Row * QuadrantSize + Column] = A21[RowWidthA * Row + Column] + A22[RowWidthA * Row + Column];
-
 #pragma omp taskwait
 
 #pragma omp task private(Row, Column)
+
   for (Row = 0; Row < QuadrantSize; Row++)
     for (Column = 0; Column < QuadrantSize; Column++)
       S2[Row * QuadrantSize + Column] = S1[Row * QuadrantSize + Column] - A[RowWidthA * Row + Column];

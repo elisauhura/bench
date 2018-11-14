@@ -1,11 +1,11 @@
 CC=gcc-8
-FLAGS_OMP=-fopenmp -O3
-FLAGS_SEQ=-O3
+FLAGS_OMP=-fopenmp -O3 -lm
+FLAGS_SEQ=-O3 -lm
 G=
 
 bench:
-	#$(CC) $(G) -c c/bench.c -o bench.o
-	#$(CC) $(G) -c c/bench.c -o bench_omp.o -fopenmp
+	$(CC) $(G) -c c/bench.c -o bench.o
+	$(CC) $(G) -c c/bench.c -o bench_omp.o -fopenmp
 	$(CC) $(G) -c src/main.c -o main.o
 	$(CC) $(G) -c src/strassen.c -o strassen.o
 	$(CC) $(G) -c $(FLAGS_OMP) src/main.c -o main-omp.o
@@ -14,9 +14,9 @@ bench:
 
 
 build: bench
-	$(CC) $(G) src/strassen-seq.c main.o strassen.o $(FLAGS_SEQ) -o bin/strassen-seq
-	$(CC) $(G) src/strassen-task.c main-omp.o strassen-omp.o $(FLAGS_OMP) -o bin/strassen-task
-	$(CC) $(G) src/strassen-task-dep.c main-omp.o strassen-omp.o $(FLAGS_OMP) -o bin/strassen-task-dep
+	$(CC) $(G) src/strassen-seq.c main.o bench.o strassen.o $(FLAGS_SEQ) -o bin/strassen-seq
+	$(CC) $(G) src/strassen-task.c main-omp.o bench_omp.o strassen-omp.o $(FLAGS_OMP) -o bin/strassen-task
+	$(CC) $(G) src/strassen-task-dep.c main-omp.o bench_omp.o strassen-omp.o $(FLAGS_OMP) -o bin/strassen-task-dep
 
 run:
 	echo "{ \"out\" : ["
