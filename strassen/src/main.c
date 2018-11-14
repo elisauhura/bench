@@ -4,6 +4,10 @@
 #include <float.h>
 #include <math.h>
 
+#define MSIZE
+#define CUTOFF_SIZE
+#define CUTOFF_DEPTH
+
 #ifdef _OPENMP
 #  include <omp.h>
 #endif
