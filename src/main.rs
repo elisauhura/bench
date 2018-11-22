@@ -16,7 +16,7 @@ fn main() {
     let path_key = "BENCH_STDPATH";
     let id_key = "BENCH_STDID";
     let deafult_stdfile = String::from("bench.json");
-    let deafult_stdpath = String::from("");
+    let deafult_stdpath = String::from("./");
     let deafult_stdid = String::from("ANON");
     let help_msg = String::from(r#"
 bench, a benchmark automation tool
