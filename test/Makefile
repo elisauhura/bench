@@ -1,4 +1,4 @@
-CC=gcc-8
+CC=gcc
 FLAGS_OMP=-fopenmp -lm
 FLAGS_OPT=-O3 -ffast-math -D_GNU_SOURCE -lm -lpthread
 FLAGS_PTH=-O3 -ffast-math -lm -lpthread
