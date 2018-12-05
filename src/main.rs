@@ -202,10 +202,14 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
                                             }
                                         }
                                         /*Generate statistics*/
-                                        let mean = statistical::mean(&values);
-                                        let median = statistical::median(&values);
-                                        let dev = statistical::standard_deviation(&values, Some(mean));
-                                        println!("{},{},{},{},{},\"{}\",{},{},{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], mean, median, dev);
+                                        if values.len() > 0 {
+                                            let mean = statistical::mean(&values);
+                                            let median = statistical::median(&values);
+                                            let dev = statistical::standard_deviation(&values, Some(mean));
+                                            println!("{},{},{},{},{},\"{}\",{},{},{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], mean, median, dev);
+                                        } else {
+                                            println!("{},{},{},{},{},{},_,_,_", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"]);
+                                        }
                                     }
                                     _ => {
                                         println!("{},{},{},{},{},{},_,_,_", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"]);
