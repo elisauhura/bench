@@ -94,7 +94,8 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
             cmd = Action::Run;
         }
         _ => {
-            panic!("Err: Unknown command to bench");
+            print!("{}", help_msg);
+            return;
         }
     }
 
