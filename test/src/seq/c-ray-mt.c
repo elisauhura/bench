@@ -159,7 +159,7 @@ const char usage[] = {
 
 
 int main(int argc, char **argv, char **envp) {
-
+	process_init();
     process_name("c-ray-mt");
     process_mode(SEQ);
     process_args(argc, argv);

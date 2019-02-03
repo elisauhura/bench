@@ -41,8 +41,7 @@ offset path is done via the BENCH_STDPATH, eg:
 BENCH_STDPATH=../foo/ bench build
 
 author id is set via the BENCH_STDID, otherwise, ANON will be used.
-
-    "#);
+"#);
     let file: String;
     let path: String;
     let seek: String;
@@ -207,13 +206,13 @@ author id is set via the BENCH_STDID, otherwise, ANON will be used.
                                             let mean = statistical::mean(&values);
                                             let median = statistical::median(&values);
                                             let dev = statistical::standard_deviation(&values, Some(mean));
-                                            println!("{},{},{},{},{},\"{}\",{},{},{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], mean, median, dev);
+                                            println!("{},{},{},{},{},\"{}\",{},{},{},{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], mean, median, dev, s["output"]);
                                         } else {
-                                            println!("{},{},{},{},{},{},_,_,_", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"]);
+                                            println!("{},{},{},{},{},{},_,_,_,{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], s["output"]);
                                         }
                                     }
                                     _ => {
-                                        println!("{},{},{},{},{},{},_,_,_", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"]);
+                                        println!("{},{},{},{},{},{},_,_,_,{}", s["bench"], s["id"], s["args"], s["mode"], hardware, s["time"], s["output"]);
                                     }
                                 }
                             }
