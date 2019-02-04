@@ -13,9 +13,13 @@ enum Bench_mode {
     OPENMP_TASK
 };
 
+void process_init();
+
 void process_name(char * str);
 void process_mode(enum Bench_mode mode);
 int process_args(int argc, char **argv);
+
+void process_append_result(char * str, int size);
 
 int process_stop_measure(void);
 int process_start_measure(void);

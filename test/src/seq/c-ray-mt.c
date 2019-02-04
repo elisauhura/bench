@@ -168,6 +168,7 @@ int main(int argc, char **argv, char **envp) {
 	unsigned long rend_time, start_time;
 	uint32_t *pixels;
 	FILE *infile = stdin, *outfile = stdout;
+	char * tgt_file;
 
 	for(i=1; i<argc; i++) {
 		if(argv[i][0] == '-' && argv[i][2] == 0) {
@@ -192,6 +193,7 @@ int main(int argc, char **argv, char **envp) {
 				break;
 
 			case 'o':
+				tgt_file = argv[i+1];
 				if(!(outfile = fopen(argv[++i], "wb"))) {
 					fprintf(stderr, "failed to open output file %s: %s\n", argv[i], strerror(errno));
 					return EXIT_FAILURE;
@@ -252,9 +254,19 @@ int main(int argc, char **argv, char **envp) {
 			fputc((pixels[i] >> BSHIFT) & 0xff, outfile);
 		}
 		fflush(outfile);
+		fclose(outfile);
+		FILE * out_file = fopen(tgt_file, "rb");
+		char out_bytes[128];
+		int out_size;
+		out_size = fread(out_bytes, 1, 128, out_file);
+		while(out_size > 0) {
+			process_append_result(out_bytes, out_size);
+			out_size = fread(out_bytes, 1, 128, out_file);
+		}
+		fclose(out_file);
 	}
 	if(infile != stdin) fclose(infile);
-	if(outfile != stdout) fclose(outfile);
+	/*if(outfile != stdout) fclose(outfile);*/
 	struct sphere *walker = obj_list;
 	while(walker) {
 		struct sphere *tmp = walker;

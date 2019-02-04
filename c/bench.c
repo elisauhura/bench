@@ -1,3 +1,5 @@
+/*requires -lssl -lcrypto*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -26,15 +28,15 @@ void process_init() {
     bench_data.out_max = 512;
 }
 
-void process_append_result(char * str) {
+void process_append_result(char * str, int size) {
     int s_size, n_size;
-    s_size = strlen(str);
+    s_size = size;
     n_size = s_size + bench_data.out_size;
     if(n_size >= bench_data.out_max) {
         do {
             bench_data.out_max = bench_data.out_max*2;
         } while(n_size >= bench_data.out_max);
-        bench_data.out = (char *) realloc(bench_data.out, bench_data.out_max);
+        bench_data.out = (char *) realloc(bench_data.out,   bench_data.out_max);
     }
     memcpy(bench_data.out + bench_data.out_size, str, s_size);
     bench_data.out_size = n_size;
@@ -175,6 +177,9 @@ int dump_csv(FILE * f) {
     fprintf(f, ", \"tasks\" : \"not available\"");
     #endif
 
+    #ifdef DEBUG
+    puts(bench_data.out);
+    #endif
 
     fprintf(f, "\"output\" : \"");
 	char *d = SHA256(bench_data.out, bench_data.out_size, 0);

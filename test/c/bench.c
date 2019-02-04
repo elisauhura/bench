@@ -1,6 +1,10 @@
+/*requires -lssl -lcrypto*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <openssl/sha.h>
 
 #include "bench.h"
 
@@ -12,7 +16,31 @@ static struct {
     char * args;
     double begin;
     double end;
+    char * out;
+    int out_size;
+    int out_max;
 } bench_data;
+
+
+void process_init() {
+    bench_data.out = (char *) malloc(512);
+    bench_data.out_size = 0;
+    bench_data.out_max = 512;
+}
+
+void process_append_result(char * str, int size) {
+    int s_size, n_size;
+    s_size = size;
+    n_size = s_size + bench_data.out_size;
+    if(n_size >= bench_data.out_max) {
+        do {
+            bench_data.out_max = bench_data.out_max*2;
+        } while(n_size >= bench_data.out_max);
+        bench_data.out = (char *) realloc(bench_data.out,   bench_data.out_max);
+    }
+    memcpy(bench_data.out + bench_data.out_size, str, s_size);
+    bench_data.out_size = n_size;
+}
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -148,6 +176,16 @@ int dump_csv(FILE * f) {
     #else
     fprintf(f, ", \"tasks\" : \"not available\"");
     #endif
+
+    #ifdef DEBUG
+    puts(bench_data.out);
+    #endif
+
+    fprintf(f, "\"output\" : \"");
+	char *d = SHA256(bench_data.out, bench_data.out_size, 0);
+	for(int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+		fprintf(f, "%02hhx", d[i]);
+    fprintf(f, "\"");
     
     fprintf(f, "}\n");
     return 1;

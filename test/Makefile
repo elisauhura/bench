@@ -3,6 +3,7 @@ FLAGS_OMP=-fopenmp -lm
 FLAGS_OPT=-O3 -ffast-math -D_GNU_SOURCE -lm -lpthread
 FLAGS_PTH=-O3 -ffast-math -lm -lpthread
 FLAGS_SEQ=-O3 -ffast-math -lm
+FLAGS_API_REQ=-lssl -lcrypto
 G=
 
 bench:
@@ -10,10 +11,10 @@ bench:
 	$(CC) $(G) -c c/bench.c -o bench_omp.o -fopenmp
 
 build: bench
-	$(CC) $(G) src/omp/c-ray-mt.c bench_omp.o $(FLAGS_OMP) -o bin/c-ray-omp
+	$(CC) $(G) src/omp/c-ray-mt.c bench_omp.o $(FLAGS_OMP) -o bin/c-ray-omp $(FLAGS_API_REQ)
 	# $(CC) $(G) src/optimized/c-ray-mt.c bench.o $(FLAGS_OPT) -o bin/c-ray-opt
-	$(CC) $(G) src/pthread/c-ray-mt.c bench.o $(FLAGS_PTH) -o bin/c-ray-pth
-	$(CC) $(G) src/seq/c-ray-mt.c bench.o $(FLAGS_SEQ) -o bin/c-ray-seq
+	$(CC) $(G) src/pthread/c-ray-mt.c bench.o $(FLAGS_PTH) -o bin/c-ray-pth $(FLAGS_API_REQ)
+	$(CC) $(G) src/seq/c-ray-mt.c bench.o $(FLAGS_SEQ) -o bin/c-ray-seq $(FLAGS_API_REQ)
 
 run:
 	echo "{ \"out\" : ["
