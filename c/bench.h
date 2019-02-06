@@ -6,7 +6,6 @@
 enum Bench_mode {
     SEQ = 0,
     OPENMP,
-    OMPSS,
     PTHREADS,
     OPTMIZED,
     CUDA,
@@ -14,6 +13,17 @@ enum Bench_mode {
     OMPSS,
     OMPSS2
 };
+
+static struct {
+    char * name;
+    enum Bench_mode mode;
+    char * args;
+    double begin;
+    double end;
+    char * out;
+    int out_size;
+    int out_max;
+} bench_data;
 
 void process_init();
 

@@ -10,16 +10,7 @@
 
 #define GG
 
-static struct {
-    char * name;
-    enum Bench_mode mode;
-    char * args;
-    double begin;
-    double end;
-    char * out;
-    int out_size;
-    int out_max;
-} bench_data;
+
 
 
 void process_init() {
@@ -70,7 +61,7 @@ static int str_size(char * str) {
     return i+1;
 };
 
-char * mode[] = {"SEQ", "OPENMP", "OMPSS", "PTHREADS", "OPTMIZED", "CUDA", "OPENMP_TASK"};
+char * mode[] = {"SEQ", "OPENMP", "PTHREADS", "OPTMIZED", "CUDA", "OPENMP_TASK", "OMPSS", "OMPSS2"};
 
 static double rtclock()
 {
@@ -181,7 +172,7 @@ int dump_csv(FILE * f) {
     puts(bench_data.out);
     #endif
 
-    fprintf(f, "\"output\" : \"");
+    fprintf(f, ",\"output\" : \"");
 	char *d = SHA256(bench_data.out, bench_data.out_size, 0);
 	for(int i = 0; i < SHA256_DIGEST_LENGTH; i++)
 		fprintf(f, "%02hhx", d[i]);
