@@ -33,6 +33,18 @@ void process_append_result(char * str, int size) {
     bench_data.out_size = n_size;
 }
 
+void process_append_file(char * str) {
+    FILE * out_file = fopen(str, "rb");
+    char out_bytes[128];
+    int out_size;
+    out_size = fread(out_bytes, 1, 128, out_file);
+    while(out_size > 0) {
+        process_append_result(out_bytes, out_size);
+        out_size = fread(out_bytes, 1, 128, out_file);
+    }
+    fclose(out_file);
+}
+
 #ifdef _OPENMP
 #include <omp.h>
 

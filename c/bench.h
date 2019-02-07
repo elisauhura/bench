@@ -32,6 +32,7 @@ void process_mode(enum Bench_mode mode);
 int process_args(int argc, char **argv);
 
 void process_append_result(char * str, int size);
+void process_append_file(char * str);
 
 int process_stop_measure(void);
 int process_start_measure(void);
